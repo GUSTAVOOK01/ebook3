@@ -27,11 +27,11 @@ def buscar_imagem(query):
     return None
 
 # Função para salvar imagem temporariamente
-def salvar_imagem(url):
+def salvar_imagem(url, palavra):
     response = requests.get(url)
     if response.status_code == 200:
         img = Image.open(BytesIO(response.content))
-        file_path = f"temp_image.jpg"
+        file_path = f"{palavra}_image.jpg"  # Nome específico para cada imagem
         img.save(file_path)
         return file_path
     return None
@@ -50,7 +50,7 @@ def criar_pdf(arquivo_texto):
     for palavra in palavras_chave:
         img_url = buscar_imagem(palavra)
         if img_url:
-            imagens[palavra] = salvar_imagem(img_url)
+            imagens[palavra] = salvar_imagem(img_url, palavra)
 
     # Criar o PDF
     pdf = FPDF()
@@ -58,13 +58,15 @@ def criar_pdf(arquivo_texto):
     pdf.add_page()
     pdf.set_font("Arial", size=12)
 
+    # Adicionar texto ao PDF
     for linha in texto.split("\n"):
         pdf.multi_cell(0, 10, linha)
         for palavra, img_path in imagens.items():
             if palavra in linha:
                 if os.path.exists(img_path):
-                    pdf.image(img_path, x=pdf.get_x(), y=pdf.get_y() + 10, w=60)
-                    pdf.ln(30)  # Adiciona espaço após a imagem
+                    pdf.ln(5)  # Adiciona espaço antes da imagem
+                    pdf.image(img_path, x=pdf.get_x(), y=pdf.get_y(), w=100)
+                    pdf.ln(50)  # Adiciona espaço após a imagem
 
     # Salvar PDF
     pdf.output("ebook_completo.pdf")
